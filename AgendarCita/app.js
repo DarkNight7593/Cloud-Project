@@ -28,7 +28,6 @@ app.use(bodyParser.json());
 app.use('/', indexRouter);
 app.use('/citas', citasRouter);
 
-const SERVICE_HOST = process.env.SERVICE_HOST || 'localhost';
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
@@ -39,7 +38,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://${SERVICE_HOST}:8083`, 
+        url: `http://agendarcita:4000`, 
       },
     ],
   },

@@ -19,9 +19,14 @@ MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
 database = client[MONGO_DB]
 collection = database.get_collection(MONGO_COLLECTION_PACIENTES)
+try:
+    client.admin.command('ping')
+    logging.info("✅ Conexión exitosa a MongoDB")
+except Exception as e:
+    logging.error(f"❌ Error conectando a MongoDB: {e}")
 
-SERVICE_HOST = os.getenv('SERVICE_HOST')
-
+# Host del microservicio de historias clínicas
+SERVICE_HOST = "historiamedica"  # Docker service name en red red_apis
 
 # GET ALL
 async def retrieve_pacientes():
@@ -29,7 +34,6 @@ async def retrieve_pacientes():
     async for paciente in collection.find():
         pacientes.append(paciente)
     return pacientes
-
 
 # POST (INSERT)
 async def insert_paciente(data: PacienteModel):
@@ -60,7 +64,6 @@ async def insert_paciente(data: PacienteModel):
         logging.error(f"Error insertando paciente o creando historia clínica: {e}")
         raise HTTPException(status_code=500, detail=f"Error insertando paciente o creando historia clínica: {e}")
 
-
 # GET BY ID
 async def retrieve_paciente_by_id(id: str):
     paciente = await collection.find_one({"_id": id})
@@ -68,7 +71,6 @@ async def retrieve_paciente_by_id(id: str):
         return PacienteModel(**paciente)  # Convertir el dict de MongoDB a modelo de Pydantic
     else:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
-
 
 # UPDATE
 async def modify_paciente(id: str, data: PacienteUpdate):
@@ -82,7 +84,6 @@ async def modify_paciente(id: str, data: PacienteUpdate):
         if updated_paciente.modified_count > 0:
             return True
     return False
-
 
 # DELETE
 async def remove_paciente(id: str):
@@ -104,3 +105,4 @@ async def remove_paciente(id: str):
     except Exception as e:
         logging.error(f"Error eliminando paciente o historia clínica: {e}")
         raise HTTPException(status_code=500, detail=f"Error eliminando paciente o historia clínica: {e}")
+

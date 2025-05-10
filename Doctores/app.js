@@ -40,7 +40,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://${process.env.HOST}:8081`,
+        url: `http://doctores:3000`,
       },
     ],
   },

@@ -38,3 +38,6 @@ services:
       - ./.env
     networks:
       - red_apis
+networks:
+  red_apis:
+    external: true

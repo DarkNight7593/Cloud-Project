@@ -21,7 +21,7 @@ public class HistoriaClinicaService {
     RestTemplate restTemplate;
 
     // URL de la otra API
-    private static final String DOCTOR_API_URL = "http://" + System.getenv("SERVICE_HOST") + ":8081/doctors";
+    private static final String DOCTOR_API_URL = "http://doctores:8081/doctors";
 
     // Obtener todas las historias clínicas
     public List<HistoriaClinica> getAllHistoriasClinicas() {

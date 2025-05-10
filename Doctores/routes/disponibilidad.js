@@ -15,7 +15,7 @@ const pool = new Pool({
 
 pool.connect((err, client, release) => {
     if (err) {
-        return console.error('Error al conectar a la base de datos10:', err.stack);
+        return console.error('Error al conectar a la base de datos:', err.stack);
     }
     console.log('Conexión exitosa con la base de datos PostgreSQL');
     release();

@@ -1,7 +1,6 @@
 services:
   agendarcita:
     build: ./AgendarCita
-    image: juanrodo/agendarcita
     ports:
       - "8083:4000"
     env_file:
@@ -11,7 +10,6 @@ services:
 
   historiamedica:
     build: ./HistoriaClinica
-    image: juanrodo/historiaclinica
     ports:
       - "8080:8080"
     env_file:
@@ -21,7 +19,6 @@ services:
 
   doctores:
     build: ./Doctores
-    image: juanrodo/doctores
     ports:
       - "8081:3000"
     env_file:
@@ -31,7 +28,6 @@ services:
 
   pacientes:
     build: ./Pacientes
-    image: juanrodo/pacientes
     ports:
       - "8082:8000"
     env_file:

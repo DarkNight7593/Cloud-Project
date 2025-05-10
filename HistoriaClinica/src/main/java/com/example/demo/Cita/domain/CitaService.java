@@ -35,7 +35,7 @@ public class CitaService {
     }
 
     // URL de la otra API
-    private static final String DOCTOR_API_URL = "http://doctores:8081/doctors";
+    private static final String DOCTOR_API_URL = "http://doctores:3000/doctors";
 
     // Guardar una nueva cita y actualizar el total de citas del doctor
     public Cita saveCita(Cita cita,String dniPaciente) {

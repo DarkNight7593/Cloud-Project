@@ -17,7 +17,7 @@ from ..models.patientModel import (
 )
 
 router = APIRouter()
-@router.post("/", response_description="Pacientes registrados")
+@router.post("/", response_description="registrar paciente")
 async def create_paciente(paciente_data: PacienteModel = Body(...)):
     paciente = jsonable_encoder(paciente_data)
     new_paciente = await insert_paciente(paciente)

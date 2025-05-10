@@ -5,8 +5,10 @@ services:
     ports:
       - "8083:4000"
     env_file:
-      - ./.env 
-      
+      - ./.env
+    networks:
+      - red_apis
+
   historiamedica:
     build: ./HistoriaClinica
     image: juanrodo/historiaclinica
@@ -14,6 +16,8 @@ services:
       - "8080:8080"
     env_file:
       - ./.env
+    networks:
+      - red_apis
 
   doctores:
     build: ./Doctores
@@ -21,7 +25,9 @@ services:
     ports:
       - "8081:3000"
     env_file:
-      - ./.env 
+      - ./.env
+    networks:
+      - red_apis
 
   pacientes:
     build: ./Pacientes
@@ -29,4 +35,6 @@ services:
     ports:
       - "8082:8000"
     env_file:
-      - ./.env  
+      - ./.env
+    networks:
+      - red_apis

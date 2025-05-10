@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 
 from server.models.patientModel import PacienteModel, PacienteUpdate, SeguroModel
 
-MONGO_HOST = os.getenv('MONGO_HOST')
+MONGO_HOST = os.getenv('HOST')
 MONGO_PORT = os.getenv('MONGO_PORT')
 MONGO_DB = os.getenv('MONGO_DB')
 MONGO_USER = os.getenv('MONGO_USER')

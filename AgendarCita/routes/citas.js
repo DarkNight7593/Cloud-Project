@@ -2,12 +2,11 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-const SERVICE_HOST = process.env.SERVICE_HOST || 'localhost';
 // URLs de los microservicios
-const PACIENTE_SERVICE_URL = `http://${SERVICE_HOST}:8082/pacientes`;
-const DOCTOR_SERVICE_URL = `http://${SERVICE_HOST}:8081/doctors`;
-const DISPONIBILIDAD_SERVICE_URL = `http://${SERVICE_HOST}:8081/disponibilidad`;
-const CITA_SERVICE_URL = `http://${SERVICE_HOST}:8080/citas`;
+const PACIENTE_SERVICE_URL = `http://pacientes:8000/pacientes`;
+const DOCTOR_SERVICE_URL = `http://doctores:3000/doctors`;
+const DISPONIBILIDAD_SERVICE_URL = `http://doctores:3000/disponibilidad`;
+const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
 
 // Ruta para agendar una cita
 /**

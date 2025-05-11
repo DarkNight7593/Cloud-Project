@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.sql.Time;
 import java.util.List;
 
@@ -17,7 +16,6 @@ public class Cita {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "fecha", columnDefinition = "VARCHAR(20)")
     private String fecha;
     private Time hora;
     private String especialidad;

@@ -6,7 +6,7 @@ services:
     env_file:
       - ./.env
     networks:
-      - red_apis
+      - red-apis
 
   historiamedica:
     build: ./HistoriaClinica
@@ -15,7 +15,7 @@ services:
     env_file:
       - ./.env
     networks:
-      - red_apis
+      - red-apis
 
   doctores:
     build: ./Doctores
@@ -24,7 +24,7 @@ services:
     env_file:
       - ./.env
     networks:
-      - red_apis
+      - red-apis
 
   pacientes:
     build: ./Pacientes
@@ -33,7 +33,7 @@ services:
     env_file:
       - ./.env
     networks:
-      - red_apis
+      - red-apis
 networks:
   red_apis:
     external: true

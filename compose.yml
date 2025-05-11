@@ -35,5 +35,5 @@ services:
     networks:
       - red-apis
 networks:
-  red_apis:
+  red-apis:
     external: true

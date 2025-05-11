@@ -34,16 +34,6 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *               dniPaciente:
  *                 type: string
  *                 description: DNI del paciente que agenda la cita
- *               nombres:
- *                 type: string
- *                 description: Nombres del paciente (usado solo si el paciente se crea externamente)
- *               apellidos:
- *                 type: string
- *                 description: Apellidos del paciente
- *               fechaNacimiento:
- *                 type: string
- *                 format: date
- *                 description: Fecha de nacimiento del paciente
  *               dniDoctor:
  *                 type: string
  *                 description: DNI del doctor con quien se agenda la cita
@@ -56,17 +46,6 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *                 format: time
  *                 example: "09:00:00"
  *                 description: Hora de la cita en formato HH:MM:SS
- *               seguro:
- *                 type: object
- *                 description: Datos del seguro del paciente (opcional)
- *                 properties:
- *                   tipo_seguro:
- *                     type: string
- *                     example: "SIS"
- *                   vencimiento:
- *                     type: string
- *                     format: date
- *                     example: "2026-01-01"
  *     responses:
  *       201:
  *         description: Cita creada con éxito
@@ -193,6 +172,10 @@ router.post('/agendar', async (req, res) => {
  *               items:
  *                 type: object
  *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: ID de la cita
+ *                     example: "12345"
  *                   dia:
  *                     type: string
  *                     description: dia de la cita
@@ -283,6 +266,8 @@ router.get('/:dniPaciente', async (req, res) => {
  *     summary: Cancelar una cita
  *     description: >
  *       Elimina una cita agendada por su ID y restaura la disponibilidad del doctor para la fecha y hora correspondientes.
+ *     tags:
+ *       - Citas
  *     parameters:
  *       - in: path
  *         name: idCita
@@ -290,50 +275,77 @@ router.get('/:dniPaciente', async (req, res) => {
  *         description: ID único de la cita a cancelar
  *         schema:
  *           type: string
+ *           example: "12345"
  *     responses:
  *       200:
  *         description: La cita fue cancelada y la disponibilidad del doctor restaurada exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Cita cancelada y disponibilidad restaurada con éxito"
  *       404:
  *         description: La cita no fue encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Cita no encontrada"
  *       500:
  *         description: Error interno al cancelar la cita o restaurar disponibilidad.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Error al restaurar la disponibilidad del doctor"
  */
 
 router.delete('/cancelar/:idCita', async (req, res) => {
     const { idCita } = req.params;
 
     try {
-        // 1. Obtener la información de la cita (usamos el ID de la cita)
-        const citaResponse = await axios.get(`${CITA_SERVICE_URL}/cita/${idCita}`);
+        console.log(`Obteniendo información de la cita con ID ${idCita}`);
+        const citaResponse = await axios.get(`${CITA_SERVICE_URL}/${idCita}`);
         const cita = citaResponse.data;
 
         if (!cita) {
+            console.warn(`Cita no encontrada con ID ${idCita}`);
             return res.status(404).send('Cita no encontrada');
         }
 
-        // 2. Eliminar la cita de la base de datos
-        await axios.delete(`${CITA_SERVICE_URL}/cita/${idCita}`);
-        console.log(`Cita con ID ${idCita} cancelada.`);
+        console.log(`Eliminando cita con ID ${idCita}`);
+        await axios.delete(`${CITA_SERVICE_URL}/${idCita}`);
+        console.log(`Cita con ID ${idCita} eliminada.`);
 
-        // 3. Restaurar la disponibilidad del doctor
         const { dniDoctor, dia, hora } = cita;
-
         const disponibilidadData = { dia, hora };
 
+        console.log(`Restaurando disponibilidad del doctor ${dniDoctor} en ${dia} a las ${hora}`);
         try {
             await axios.post(`${DISPONIBILIDAD_SERVICE_URL}/${dniDoctor}`, disponibilidadData);
-            console.log(`Disponibilidad restaurada para el doctor ${dniDoctor} en ${dia} a las ${hora}`);
+            console.log(`Disponibilidad restaurada para el doctor ${dniDoctor}`);
         } catch (err) {
-            console.error('Error al restaurar la disponibilidad del doctor:', err.message);
-            res.status(500).send(`Error restarurando la disponibilidad para el doctor ${dniDoctor} en ${dia} a las ${hora}`);
+            console.error(`Error al restaurar disponibilidad del doctor ${dniDoctor}:`, err.message);
+            return res.status(500).send(`Error al restaurar la disponibilidad del doctor ${dniDoctor}`);
         }
 
         res.status(200).send('Cita cancelada y disponibilidad restaurada con éxito');
+
     } catch (error) {
-        console.error('Error al cancelar la cita:', error.message);
-        res.status(500).send('Error al cancelar la cita');
+        if (error.response) {
+            console.error(`Error en la petición HTTP: ${error.response.status} - ${error.response.statusText}`);
+            console.error(`Detalle del error:`, error.response.data);
+            return res.status(error.response.status).send(error.response.data || 'Error al cancelar la cita');
+        } else if (error.request) {
+            console.error('No se recibió respuesta del servicio:', error.request);
+            return res.status(500).send('No se recibió respuesta del servicio de citas');
+        } else {
+            console.error('Error desconocido:', error.message);
+            return res.status(500).send('Error desconocido al cancelar la cita');
+        }
     }
 });
+
 
 module.exports = router;
 

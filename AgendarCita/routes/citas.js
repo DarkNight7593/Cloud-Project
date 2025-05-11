@@ -147,7 +147,7 @@ router.post('/agendar', async (req, res) => {
         const citaData = {
             dniPaciente,
             dniDoctor,
-            fecha,
+            dia,
             hora: formatHora(hora)
         };
 
@@ -186,10 +186,10 @@ router.post('/agendar', async (req, res) => {
  *               items:
  *                 type: object
  *                 properties:
- *                   fecha:
+ *                   dia:
  *                     type: string
- *                     description: Fecha de la cita
- *                     example: "2023-11-01"
+ *                     description: dia de la cita
+ *                     example: "Lunes"
  *                   hora:
  *                     type: string
  *                     description: Hora de la cita

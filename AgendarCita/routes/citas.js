@@ -252,6 +252,7 @@ router.get('/:dniPaciente', async (req, res) => {
 
                 // Agregar los datos del doctor (sin el contador de citas)
                 return {
+                    id: cita.id,
                     fecha: cita.dia,
                     hora: cita.hora,
                     doctor: {

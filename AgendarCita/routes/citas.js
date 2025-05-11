@@ -85,9 +85,6 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *               type: string
  *               example: "Error al agendar la cita"
  */
-const formatHora = (hora) => {
-    return hora.length === 8 ? hora.slice(0, 5) : hora; 
-};
 router.post('/agendar', async (req, res) => {
     const { dniPaciente, nombres, apellidos, fechaNacimiento, dniDoctor, dia, hora, seguro } = req.body;
 
@@ -148,7 +145,7 @@ router.post('/agendar', async (req, res) => {
             dniPaciente,
             dniDoctor,
             dia,
-            hora: formatHora(hora)
+            hora
         };
 
         const citaResponse = await axios.post(`${CITA_SERVICE_URL}/${dniPaciente}`, citaData);

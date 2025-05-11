@@ -16,6 +16,7 @@ public class Cita {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String dia;
     private Time hora;
     private String especialidad;
     private String dniDoctor;

@@ -38,10 +38,9 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *               dniDoctor:
  *                 type: string
  *                 description: DNI del doctor
- *               fecha:
+ *               dia:
  *                 type: string
- *                 format: date
- *                 description: Fecha de la cita
+ *                 description: dia de la cita
  *               hora:
  *                 type: string
  *                 format: time
@@ -87,10 +86,10 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *               example: "Error al agendar la cita"
  */
 const formatHora = (hora) => {
-    return hora.length === 8 ? hora.slice(0, 5) : hora; // "09:00:00" => "09:00"
+    return hora.length === 8 ? hora.slice(0, 5) : hora; 
 };
 router.post('/agendar', async (req, res) => {
-    const { dniPaciente, nombres, apellidos, fechaNacimiento, dniDoctor, fecha, hora, seguro } = req.body;
+    const { dniPaciente, nombres, apellidos, fechaNacimiento, dniDoctor, dia, hora, seguro } = req.body;
 
     try {
         // 1. Verificar si el paciente existe
@@ -138,8 +137,8 @@ router.post('/agendar', async (req, res) => {
         const disponibilidadResponse = await axios.get(`${DISPONIBILIDAD_SERVICE_URL}/${dniDoctor}`);
         const disponibilidad = disponibilidadResponse.data;
 
-        if (!disponibilidad.some(d => d.dia === fecha && d.hora === hora)) {
-            console.error(`El doctor con DNI ${dniDoctor} no está disponible en la fecha ${fecha} y hora ${hora}.`);
+        if (!disponibilidad.some(d => d.dia === dia && d.hora === hora)) {
+            console.error(`El doctor con DNI ${dniDoctor} no está disponible en la fecha ${dia} y hora ${hora}.`);
             return res.status(400).send('El doctor no está disponible en la fecha y hora solicitadas.');
         }
         console.log(`Doctor disponible en la fecha ${fecha} y hora ${hora}.`);
@@ -246,7 +245,7 @@ router.get('/:dniPaciente', async (req, res) => {
 
                 // Agregar los datos del doctor (sin el contador de citas)
                 return {
-                    fecha: cita.fecha,
+                    fecha: cita.dia,
                     hora: cita.hora,
                     doctor: {
                         nombres: doctorData.nombres,

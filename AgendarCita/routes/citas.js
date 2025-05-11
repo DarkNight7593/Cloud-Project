@@ -141,7 +141,7 @@ router.post('/agendar', async (req, res) => {
             console.error(`El doctor con DNI ${dniDoctor} no está disponible en la fecha ${dia} y hora ${hora}.`);
             return res.status(400).send('El doctor no está disponible en la fecha y hora solicitadas.');
         }
-        console.log(`Doctor disponible en la fecha ${fecha} y hora ${hora}.`);
+        console.log(`Doctor disponible en la fecha ${dia} y hora ${hora}.`);
 
         // 4. Crear la cita
         const citaData = {

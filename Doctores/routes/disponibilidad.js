@@ -110,4 +110,60 @@ router.post('/:dni', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /disponibilidad/{dni}:
+ *   delete:
+ *     summary: Eliminar disponibilidad de un doctor
+ *     description: Elimina una disponibilidad específica (día y hora) del doctor con el DNI proporcionado.
+ *     parameters:
+ *       - in: path
+ *         name: dni
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: DNI del doctor.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dia:
+ *                 type: string
+ *                 example: "Lunes"
+ *               hora:
+ *                 type: string
+ *                 example: "10:00"
+ *     responses:
+ *       200:
+ *         description: Disponibilidad eliminada con éxito.
+ *       404:
+ *         description: Disponibilidad no encontrada.
+ *       500:
+ *         description: Error al eliminar la disponibilidad.
+ */
+
+router.delete('/:dni', async (req, res) => {
+    const { dni } = req.params;
+    const { dia, hora } = req.body;
+
+    try {
+        const result = await pool.query(
+            'DELETE FROM Disponibilidad WHERE dni_doctor = $1 AND dia = $2 AND hora = $3',
+            [dni, dia, hora]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).send('Disponibilidad no encontrada');
+        }
+
+        res.send('Disponibilidad eliminada con éxito');
+    } catch (err) {
+        console.error('Error al eliminar la disponibilidad:', err.stack);
+        res.status(500).send('Error al eliminar la disponibilidad');
+    }
+});
+
 module.exports = router;

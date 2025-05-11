@@ -8,53 +8,65 @@ const DOCTOR_SERVICE_URL = `http://doctores:3000/doctors`;
 const DISPONIBILIDAD_SERVICE_URL = `http://doctores:3000/disponibilidad`;
 const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
 
-// Ruta para agendar una cita
 /**
  * @swagger
  * /agendar:
  *   post:
- *     summary: Agendar una cita
- *     description: Crea una cita para un paciente con un doctor en una fecha y hora específicas. Si el paciente no existe, se crea automáticamente.
+ *     summary: Agendar una cita médica
+ *     description: >
+ *       Agenda una cita entre un paciente y un doctor en una fecha y hora determinadas. 
+ *       - Si el paciente no existe, se debe haber creado previamente.
+ *       - Se valida la existencia del doctor.
+ *       - Se comprueba la disponibilidad del doctor en la fecha y hora solicitadas.
+ *       - Si todo es válido, se registra la cita y se elimina la disponibilidad correspondiente del doctor.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - dniPaciente
+ *               - dniDoctor
+ *               - dia
+ *               - hora
  *             properties:
  *               dniPaciente:
  *                 type: string
- *                 description: DNI del paciente
+ *                 description: DNI del paciente que agenda la cita
  *               nombres:
  *                 type: string
- *                 description: Nombres del paciente (si se va a crear un nuevo paciente)
+ *                 description: Nombres del paciente (usado solo si el paciente se crea externamente)
  *               apellidos:
  *                 type: string
- *                 description: Apellidos del paciente (si se va a crear un nuevo paciente)
+ *                 description: Apellidos del paciente
  *               fechaNacimiento:
  *                 type: string
  *                 format: date
- *                 description: Fecha de nacimiento del paciente (si se va a crear un nuevo paciente)
+ *                 description: Fecha de nacimiento del paciente
  *               dniDoctor:
  *                 type: string
- *                 description: DNI del doctor
+ *                 description: DNI del doctor con quien se agenda la cita
  *               dia:
  *                 type: string
- *                 description: dia de la cita
+ *                 example: "Lunes"
+ *                 description: Día de la cita 
  *               hora:
  *                 type: string
  *                 format: time
- *                 description: Hora de la cita
+ *                 example: "09:00:00"
+ *                 description: Hora de la cita en formato HH:MM:SS
  *               seguro:
  *                 type: object
+ *                 description: Datos del seguro del paciente (opcional)
  *                 properties:
  *                   tipo_seguro:
  *                     type: string
- *                     description: Tipo de seguro del paciente (opcional)
+ *                     example: "SIS"
  *                   vencimiento:
  *                     type: string
  *                     format: date
- *                     description: Fecha de vencimiento del seguro (opcional)
+ *                     example: "2026-01-01"
  *     responses:
  *       201:
  *         description: Cita creada con éxito
@@ -63,53 +75,47 @@ const CITA_SERVICE_URL = `http://historiamedica:8080/citas`;
  *             schema:
  *               type: string
  *               example: "Cita agendada con éxito"
- *       404:
- *         description: El doctor no fue encontrado
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- *               example: "Doctor no encontrado"
  *       400:
  *         description: El doctor no está disponible en la fecha y hora seleccionadas
  *         content:
  *           application/json:
  *             schema:
  *               type: string
- *               example: "El doctor no está disponible en la fecha y hora solicitadas"
+ *               example: "El doctor no está disponible en la fecha y hora solicitadas."
+ *       404:
+ *         description: Doctor o paciente no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Doctor no encontrado"
  *       500:
- *         description: Error al agendar la cita
+ *         description: Error interno al procesar la solicitud de agendamiento
  *         content:
  *           application/json:
  *             schema:
  *               type: string
  *               example: "Error al agendar la cita"
  */
+
 router.post('/agendar', async (req, res) => {
-    const { dniPaciente, nombres, apellidos, fechaNacimiento, dniDoctor, dia, hora, seguro } = req.body;
+    const { dniPaciente, dniDoctor, dia, hora} = req.body;
 
     try {
         // 1. Verificar si el paciente existe
         let pacienteResponse;
         try {
             pacienteResponse = await axios.get(`${PACIENTE_SERVICE_URL}/${dniPaciente}`);
-            console.log(`Paciente con DNI ${dniPaciente} encontrado.`);
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
-                // Si el paciente no existe, crearlo con o sin seguro
-                const newPaciente = {
-                    _id: dniPaciente,
-                    nombres,
-                    apellidos,
-                    fecha_nacimiento: fechaNacimiento,
-                    ...(seguro && { seguro }) // Añadir seguro si existe
-                };
-                pacienteResponse = await axios.post(PACIENTE_SERVICE_URL, newPaciente);
-                console.log(`Paciente con DNI ${dniPaciente} no encontrado. Paciente creado:`, pacienteResponse.data);
+            if (pacienteResponse?.data) {
+                console.log(`Paciente con DNI ${dniPaciente} encontrado.`);
             } else {
-                console.error('Error al verificar el paciente:', error.message);
-                throw new Error('Error al verificar el paciente');
+                return res.status(404).send('Paciente no encontrado');
             }
+        } catch (error) {
+            const statusCode = error.response?.status || 500;
+            const errorMessage = statusCode === 404 ? 'Paciente no encontrado' : 'Error al verificar el Paciente';
+            console.error(errorMessage, error.message);
+            return res.status(statusCode).send(errorMessage);
         }
 
         // 2. Verificar que el doctor existe
@@ -127,8 +133,6 @@ router.post('/agendar', async (req, res) => {
             console.error(errorMessage, error.message);
             return res.status(statusCode).send(errorMessage);
         }
-
-
 
         // 3. Verificar la disponibilidad del doctor
         const disponibilidadResponse = await axios.get(`${DISPONIBILIDAD_SERVICE_URL}/${dniDoctor}`);
@@ -152,6 +156,12 @@ router.post('/agendar', async (req, res) => {
         console.log(`Cita creada con éxito:`, citaResponse.data);
 
         res.status(201).send('Cita agendada con éxito');
+        
+        // 5. Eliminar la disponibilidad usada del doctor
+        await axios.delete(`${DISPONIBILIDAD_SERVICE_URL}/${dniDoctor}`, {
+            data: { dia, hora } // Especificamos qué disponibilidad eliminar
+        });
+        console.log(`Disponibilidad eliminada para el doctor ${dniDoctor} en ${dia} a las ${hora}`);
 
     } catch (error) {
         console.error('Error al agendar la cita:', error.message);
@@ -262,6 +272,65 @@ router.get('/:dniPaciente', async (req, res) => {
     } catch (error) {
         console.error('Error al obtener las citas del paciente:', error.message);
         res.status(500).send('Error al obtener las citas del paciente');
+    }
+});
+
+/**
+ * @swagger
+ * /cancelar/{idCita}:
+ *   delete:
+ *     summary: Cancelar una cita
+ *     description: >
+ *       Elimina una cita agendada por su ID y restaura la disponibilidad del doctor para la fecha y hora correspondientes.
+ *     parameters:
+ *       - in: path
+ *         name: idCita
+ *         required: true
+ *         description: ID único de la cita a cancelar
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: La cita fue cancelada y la disponibilidad del doctor restaurada exitosamente.
+ *       404:
+ *         description: La cita no fue encontrada.
+ *       500:
+ *         description: Error interno al cancelar la cita o restaurar disponibilidad.
+ */
+
+router.delete('/cancelar/:idCita', async (req, res) => {
+    const { idCita } = req.params;
+
+    try {
+        // 1. Obtener la información de la cita (usamos el ID de la cita)
+        const citaResponse = await axios.get(`${CITA_SERVICE_URL}/cita/${idCita}`);
+        const cita = citaResponse.data;
+
+        if (!cita) {
+            return res.status(404).send('Cita no encontrada');
+        }
+
+        // 2. Eliminar la cita de la base de datos
+        await axios.delete(`${CITA_SERVICE_URL}/cita/${idCita}`);
+        console.log(`Cita con ID ${idCita} cancelada.`);
+
+        // 3. Restaurar la disponibilidad del doctor
+        const { dniDoctor, dia, hora } = cita;
+
+        const disponibilidadData = { dia, hora };
+
+        try {
+            await axios.post(`${DISPONIBILIDAD_SERVICE_URL}/${dniDoctor}`, disponibilidadData);
+            console.log(`Disponibilidad restaurada para el doctor ${dniDoctor} en ${dia} a las ${hora}`);
+        } catch (err) {
+            console.error('Error al restaurar la disponibilidad del doctor:', err.message);
+            res.status(500).send(`Error restarurando la disponibilidad para el doctor ${dniDoctor} en ${dia} a las ${hora}`);
+        }
+
+        res.status(200).send('Cita cancelada y disponibilidad restaurada con éxito');
+    } catch (error) {
+        console.error('Error al cancelar la cita:', error.message);
+        res.status(500).send('Error al cancelar la cita');
     }
 });
 
